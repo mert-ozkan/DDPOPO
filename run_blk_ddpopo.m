@@ -18,7 +18,7 @@ ver_ppd = scr.pixperdeg_v;
 qPatch = 8;
 env_sz = 1;
 int_spd = 4;
-dist_deFix = 5;
+dist_deFix = 8;
 trl_dur = .31;
 
 ext_th = [135, 45];
@@ -27,7 +27,6 @@ int_th = [315, 135;...
 int_th = convert_toPtbTh(int_th);
 
 intv_pre = [0.2 0.7];
-intv_post = 0.3;
 
 qFrm = round(trl_dur * scr.framerate);
 %% Pink noise texture
