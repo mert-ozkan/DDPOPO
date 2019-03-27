@@ -1,4 +1,4 @@
-function isEndSxn = run_blk_ddpopo(f, whBlk, trl_sq)
+function [isEndSxn, isComplete] = run_blk_ddpopo(f, whBlk, trl_sq)
 %% Priming of Pop-Out in Double-Drift
 %% Open Window
 scr_cfg.blendfunction = 'yes';
@@ -14,13 +14,11 @@ scr_cfg.backgroundcolor = [127 127 127 255];
 %% Parameters
 hor_ppd = scr.pixperdeg_h;
 ver_ppd = scr.pixperdeg_v;
-cent_x = scr.xcenter;
-cent_y = scr.ycenter;
 
 qPatch = 8;
 env_sz = 1;
 int_spd = 4;
-dist_deFix = 5;
+dist_deFix = 8;
 trl_dur = .31;
 
 ext_th = [135, 45];
@@ -29,10 +27,8 @@ int_th = [315, 135;...
 int_th = convert_toPtbTh(int_th);
 
 intv_pre = [0.2 0.7];
-intv_post = 0.3;
 
 qFrm = round(trl_dur * scr.framerate);
-fix_col = [255,255,255,255];
 %% Pink noise texture
 pink_cfg.mode = 'pinknoise';
 pink_cfg.pixelsperdegree = hor_ppd;
@@ -92,12 +88,12 @@ while ~isEndSxn && whTrl <= qTrl
     onsetX = asynchronous_onsets(scr.framerate,.2,qPatch);
     %% Initial screen
     if whTrl == 1
-        initial_screen()
-    end
-    
-    
+        isEndSxn = initial_screen(scr,whBlk,qTrl);
+        if isEndSxn, break; end
+    end   
+    %% Jittered Screen
+    draw_dots(scr.windowptr,scr.xcenter,scr.ycenter,'Flip','WaitSecs',unifrnd(intv_pre(1),intv_pre(2)));
     %% Start trial
-    
     currFrm = ceil(qFrm/2);
     isRxn = false;
     PsychHID('KbQueueStart'); PsychHID('KbQueueFlush');
@@ -105,7 +101,7 @@ while ~isEndSxn && whTrl <= qTrl
         whFrm = get_currFrmNo(currFrm,qFrm,true,onsetX);
         
         draw_dots(scr.windowptr,scr.xcenter,scr.ycenter);
-        drawDDpatches(scr,coordX,whFrm,pink,int_thX,ext_thX,'SuperimposeDots','AssignColor',dot_clr);
+        draw_DDpatches(scr,coordX,whFrm,pink,int_thX,ext_thX,'SuperimposeDots','AssignColor',dot_clr);
         Screen('Flip',scr.windowptr);
         
         [isEndSxn, isRxn, rxn_key, rxn_t] = reaction({'RightArrow','LeftArrow'});
@@ -132,6 +128,44 @@ while ~isEndSxn && whTrl <= qTrl
     prevCryp = cryp;
     whTrl = whTrl + 1;
 end
+isComplete = true;
+if whTrl-1 ~= qTrl
+    isComplete = false;
+end
+end
+%%
+function isEndSxn = initial_screen(scr,whBlk,qTrl)
+hor_ppd = scr.pixperdeg_h;
+txtX = {...
+    sprintf('This is the Block No%d.',whBlk),...
+    'Press the SPACE BAR in order to PROCEED',...
+    'If you want to QUIT the session, press the ESCAPE key. You will continue from this block in the next session.'};
+txt_x = ones(1,length(txtX))*scr.xcenter-(5*hor_ppd);
+txt_y = ones(1,length(txtX))*scr.ycenter-([5:-1:5-length(txtX)+1]*hor_ppd);
+draw_texts(scr.windowptr,txtX,txt_x,txt_y);
+draw_dots(scr.windowptr,scr.xcenter,scr.ycenter,'Flip');
+
+[isEndSxn, ~, ~, ~] = wait_forReaction('space');
+
+if isEndSxn, return; end
+PsychHID('KbQueueStop');
+
+txtX = {...
+    sprintf('There will be %d trials in this block.',qTrl),...
+    'You need to complete each trial without giving a break in between.',...
+    'Press the SPACE BAR in order to PROCEED',...
+    'In the NEXT SCREEN, press the SPACE BAR again after you make sure that you OBTAINED FIXATION.',...
+    'If you want to QUIT the session, press the ESCAPE key. You will continue from this block in the next session.'};
+txt_x = ones(1,length(txtX))*scr.xcenter-(5*hor_ppd);
+txt_y = ones(1,length(txtX))*scr.ycenter-([5:-1:5-length(txtX)+1]*hor_ppd);
+draw_texts(scr.windowptr,txtX,txt_x,txt_y);
+draw_dots(scr.windowptr,scr.xcenter,scr.ycenter,'Flip');
+[isEndSxn, ~, ~, ~] = wait_forReaction('space');
+if isEndSxn, return; end
+
+draw_dots(scr.windowptr,scr.xcenter,scr.ycenter,'Flip');
+[isEndSxn, ~, ~, ~] = wait_forReaction('space');
+if isEndSxn, return; end
 end
 %%
 function comp = compare_digits(num1,num2)
@@ -199,7 +233,7 @@ else
 end
 end
 %%
-function drawDDpatches(scr,coordX,whFrm,pink,int_thX,ext_thX,varargin)
+function draw_DDpatches(scr,coordX,whFrm,pink,int_thX,ext_thX,varargin)
 isDrawDot = false;
 info = size(coordX);
 
@@ -263,7 +297,7 @@ else
         
         Screen('DrawTexture', scr.windowptr, pink.tex(whFrm(whPatch)), [], rect,int_th);
         if isDrawDot
-            draw_dots(scr.windowptr,coord(1),coord(2),'Size',dot_sz,'Color',dot_gunX(dot_clr(whPatch),:));
+            draw_dots(scr.windowptr,coord(1),coord(2),'Size',dot_sz,'Color',dot_gunX(dot_clr,:));
         end
     end
 end

@@ -1,3 +1,4 @@
+function [qst, trl_sq, init_trl] = ddpopo_quest(qst, trl_sq, init_trl)
 %% Open Window
 scr_cfg.blendfunction = 'yes';
 scr_cfg.sourcefactor = 'GL_SRC_ALPHA';
@@ -15,7 +16,6 @@ ver_ppd = scr.pixperdeg_v;
 
 qPatch = 8;
 env_sz = 1;
-int_spd = 4;
 dist_deFix = 8;
 trl_dur = .31;
 
@@ -25,8 +25,6 @@ int_th = [315, 135;...
 int_th = convert_toPtbTh(int_th);
 
 intv_pre = [0.2 0.7];
-
-qFrm = round(trl_dur * scr.framerate);
 %% Stimulus trajectories
 rect_cfg.numberoftrajectories = qPatch;
 rect_cfg.trialduration = trl_dur;
@@ -45,7 +43,6 @@ coordX = equidistant_trajectory_coordinates(rect_cfg);
 pink_cfg.mode = 'pinknoise';
 pink_cfg.pixelsperdegree = hor_ppd;
 pink_cfg.framerate = scr.framerate;
-% pink_cfg.internalspeed = int_spd;
 pink_cfg.trialduration = trl_dur; %(seconds)
 pink_cfg.envelopesize = env_sz; %(degrees)
 pink_cfg.backgroundcolour = 127;
@@ -55,31 +52,54 @@ pink_cfg.randomnoise = 0;% = 1 only for the control stimulus without illusion
 pink_cfg.reversal = 0; %(if 1, the stimulus ends at the initial location)
 
 %% Display
-whPos = 1;
-whPhysTrj = 1;
-whIllTrj = 1;
-for whTrl = 1:40    
+qTrl = length(trl_sq);
+whTrl = init_trl;
+isEndSxn = false;
+PsychHID('KbQueueCreate');
+while whTrl <= qTrl && ~isEndSxn
+    %% Create stimulus
+    int_spd = easy_quest('Quantile',qst,'Condition',trl_sq(whTrl,:));
+    pink_cfg.internalspeed = int_spd;
+    pink = createdoubledriftstimulus(pink_cfg);
+    [~,~,qFrm] = size(pink.mat);
+    for currFrm = 1:qFrm
+        pink.tex(currFrm) = Screen('MakeTexture', scr.windowptr,squeeze(pink.mat(:,:,currFrm)));
+    end
+    %% Parameters
+    stim_pos = trl_sq(whTrl,1);
+    ext_trj = trl_sq(whTrl,2);
+    ill_tipN = trl_sq(whTrl,3);
+    int_thN = int_th(trl_sq(whTrl,2),ill_tipN);
+    
+    coord = squeeze(coordX(:,ext_trj,:,:));
+    coord = coord(stim_pos,:,:);
+    
     %% Initial screen
-    if whTrl == 1
-        isEndSxn = initial_screen(scr,whBlk,qTrl);
+    if whTrl == init_trl
+        isEndSxn = initial_screen(scr,whTrl,qTrl);
         if isEndSxn, break; end
     end
-    %% Create stimulus
-    
     %% Jittered Screen
     draw_dots(scr.windowptr,scr.xcenter,scr.ycenter,'Flip','WaitSecs',unifrnd(intv_pre(1),intv_pre(2)));
     %% Start trial
     currFrm = ceil(qFrm/2);
     isNxt = false;
+    PsychHID('KbQueueStart'); PsychHID('KbQueueFlush');
     while ~isNxt        
         whFrm = get_currFrmNo(currFrm,qFrm,true);
         
         draw_dots(scr.windowptr,scr.xcenter,scr.ycenter);
-        drawDDpatches(scr,coordX,whFrm,pink,int_thX,ext_thX);
+        draw_DDpatches(scr,coord,whFrm,pink,int_thN,ext_trj);
         Screen('Flip',scr.windowptr);
+        
+        [isEndSxn, isNxt, rxn_key, rxn_t] = reaction({'RightArrow'});
+        if isEndSxn, break; end
+        currFrm = currFrm + 1;
     end
+    if isEndSxn, break; end
+    PsychHID('KbQueueStop');
 end
-%%
+end
 %%
 function whFrm = get_currFrmNo(currFrm,qFrm,isRev,onsetX)
 if nargin < 3
@@ -116,10 +136,10 @@ for idx = 1:length(onsetX)
 end
 end
 %%
-function isEndSxn = initial_screen(scr,whBlk,qTrl)
+function isEndSxn = initial_screen(scr,whTrl,qTrl)
 hor_ppd = scr.pixperdeg_h;
 txtX = {...
-    sprintf('This is the Block No%d.',whBlk),...
+    sprintf('You will start this session by Trial %d/%d.',whTrl,qTrl),...
     'Press the SPACE BAR in order to PROCEED',...
     'If you want to QUIT the session, press the ESCAPE key. You will continue from this block in the next session.'};
 txt_x = ones(1,length(txtX))*scr.xcenter-(5*hor_ppd);
@@ -128,14 +148,9 @@ draw_texts(scr.windowptr,txtX,txt_x,txt_y);
 draw_dots(scr.windowptr,scr.xcenter,scr.ycenter,'Flip');
 
 [isEndSxn, ~, ~, ~] = wait_forReaction('space');
-
 if isEndSxn, return; end
-PsychHID('KbQueueStop');
 
 txtX = {...
-    sprintf('There will be %d trials in this block.',qTrl),...
-    'You need to complete each trial without giving a break in between.',...
-    'Press the SPACE BAR in order to PROCEED',...
     'In the NEXT SCREEN, press the SPACE BAR again after you make sure that you OBTAINED FIXATION.',...
     'If you want to QUIT the session, press the ESCAPE key. You will continue from this block in the next session.'};
 txt_x = ones(1,length(txtX))*scr.xcenter-(5*hor_ppd);
