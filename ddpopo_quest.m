@@ -85,15 +85,26 @@ while whTrl <= qTrl && ~isEndSxn
     currFrm = ceil(qFrm/2);
     isNxt = false;
     PsychHID('KbQueueStart'); PsychHID('KbQueueFlush');
+    th = randi(180);
+    step_th = 1;
     while ~isNxt        
         whFrm = get_currFrmNo(currFrm,qFrm,true);
-        
+        draw_line(scr,'Slope',th);
         draw_dots(scr.windowptr,scr.xcenter,scr.ycenter);
         draw_DDpatches(scr,coord,whFrm,pink,int_thN,ext_trj);
         Screen('Flip',scr.windowptr);
         
-        [isEndSxn, isNxt, rxn_key, rxn_t] = reaction({'RightArrow'});
+        [isEndSxn, ~, rxn_key, ~] = reaction({'UpArrow','DownArrow','space'});
         if isEndSxn, break; end
+        switch rxn_key
+            case 'UpArrow'
+                th = th + step_th;
+            case 'DownArrow'
+                th = th - step_th;
+            case 'space'
+                isNxt = true;
+        end
+                
         currFrm = currFrm + 1;
     end
     if isEndSxn, break; end

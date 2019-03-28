@@ -13,7 +13,7 @@ if strcmp('test',init) || strcmp('try',init)
 end
 f_nm = sprintf('%s/%s.mat',dr_dat,f_nm);
 if isfile(f_nm)
-    load(f_nm)
+    load(f_nm);
 else
     trl_sq = setTrialOrder_inDDPOPOQuest(40);
     init_trl = 1;
