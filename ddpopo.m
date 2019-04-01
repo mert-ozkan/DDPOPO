@@ -1,5 +1,12 @@
-function [isEndSxn, isComplete] = run_blk_ddpopo(f, whBlk, trl_sq)
+function [isEndSxn, isComplete] = ddpopo(f, whBlk, trl_sq)
 %% Priming of Pop-Out in Double-Drift
+%%
+% rec = 1;
+% mov.name = 'PopOut_Synch';
+% mov.framerate = 60;
+% mov.dir = '/Users/mertozkan/Documents/DD/Stimuli';
+% mov = record_display(rec,mov,'create');
+
 %% Open Window
 scr_cfg.blendfunction = 'yes';
 scr_cfg.sourcefactor = 'GL_SRC_ALPHA';
@@ -18,10 +25,10 @@ ver_ppd = scr.pixperdeg_v;
 qPatch = 8;
 env_sz = 1;
 int_spd = 4;
-dist_deFix = 8;
+dist_deFix = 6;
 trl_dur = .31;
 
-ext_th = [135, 45];
+ext_th = [45, 135];
 int_th = [315, 135;...
     225, 45]; % Rows correspond to ext_th; Columns correspond to horizontal and vertical illusion, respectively.
 int_th = convert_toPtbTh(int_th);
@@ -85,7 +92,8 @@ while ~isEndSxn && whTrl <= qTrl
     dot_clr = repmat([1;2],qPatch/2,1);
     dot_clr = dot_clr(randperm(qPatch));
     
-    onsetX = asynchronous_onsets(scr.framerate,.2,qPatch);
+    onsetX = asynchronous_onsets(scr.framerate,.5,qPatch);
+%     onsetX = asynchronous_onsets(scr.framerate,0,qPatch);
     %% Initial screen
     if whTrl == 1
         isEndSxn = initial_screen(scr,whBlk,qTrl);
@@ -104,13 +112,18 @@ while ~isEndSxn && whTrl <= qTrl
         draw_DDpatches(scr,coordX,whFrm,pink,int_thX,ext_thX,'SuperimposeDots','AssignColor',dot_clr);
         Screen('Flip',scr.windowptr);
         
+%         rec = currFrm <= 9*qFrm && currFrm >= 3*qFrm+1;
+%         mov = record_display(rec,mov,'record',scr.windowptr);
+        
         [isEndSxn, isRxn, rxn_key, rxn_t] = reaction({'RightArrow','LeftArrow'});
         if isEndSxn, break; end
         
         currFrm = currFrm + 1;
+        
     end
     if isEndSxn, break; end
     PsychHID('KbQueueStop');
+%     mov = record_display(1,mov,'finalize');
     
     if strcmp(rxn_key,'RightArrow')
         rxn_key = 1;

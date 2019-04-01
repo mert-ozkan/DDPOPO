@@ -9,10 +9,10 @@ dr_dat = '/Users/mertozkan/Documents/MATLAB/DD/DDPOPO/data';
 init = input('Initials: ','s');
 f_nm = sprintf('DDPOPO_Quest_%s',init);
 if strcmp('test',init) || strcmp('try',init)
-    f_nm = init;    
+    f_nm = 'test.mat';    
 end
 f_nm = sprintf('%s/%s.mat',dr_dat,f_nm);
-if isfile(f_nm)
+if isfile(f_nm) && strcmp(f_nm,'test.mat')
     load(f_nm);
 else
     trl_sq = setTrialOrder_inDDPOPOQuest(40);
@@ -21,7 +21,9 @@ else
 end
 
 [qst, trl_sq, init_trl] = ddpopo_quest(qst, trl_sq, init_trl);
-sca
+sca;
+
+save(f_nm, 'qst', 'trl_sq', 'init_trl')
 end
 %%
 function trlX = setTrialOrder_inDDPOPOQuest(qTrl_perStim)

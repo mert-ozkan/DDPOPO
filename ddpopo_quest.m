@@ -19,7 +19,7 @@ env_sz = 1;
 dist_deFix = 8;
 trl_dur = .31;
 
-ext_th = [135, 45];
+ext_th = [45, 135];
 int_th = [315, 135;...
     225, 45]; % Rows correspond to ext_th; Columns correspond to horizontal and vertical illusion, respectively.
 int_th = convert_toPtbTh(int_th);
@@ -67,11 +67,11 @@ while whTrl <= qTrl && ~isEndSxn
     end
     %% Parameters
     stim_pos = trl_sq(whTrl,1);
-    ext_trj = trl_sq(whTrl,2);
+    trj_tipN = trl_sq(whTrl,2);
     ill_tipN = trl_sq(whTrl,3);
     int_thN = int_th(trl_sq(whTrl,2),ill_tipN);
     
-    coord = squeeze(coordX(:,ext_trj,:,:));
+    coord = squeeze(coordX(:,trj_tipN,:,:));
     coord = coord(stim_pos,:,:);
     
     %% Initial screen
@@ -85,23 +85,29 @@ while whTrl <= qTrl && ~isEndSxn
     currFrm = ceil(qFrm/2);
     isNxt = false;
     PsychHID('KbQueueStart'); PsychHID('KbQueueFlush');
-    th = randi(180);
-    step_th = 1;
+    th = randi(180)+.5;
+    lil_step_th = 1;
+    big_step_th = 10;
     while ~isNxt        
         whFrm = get_currFrmNo(currFrm,qFrm,true);
         draw_line(scr,'Slope',th);
         draw_dots(scr.windowptr,scr.xcenter,scr.ycenter);
-        draw_DDpatches(scr,coord,whFrm,pink,int_thN,ext_trj);
+        draw_DDpatches(scr,coord,whFrm,pink,int_thN,trj_tipN);
         Screen('Flip',scr.windowptr);
         
-        [isEndSxn, ~, rxn_key, ~] = reaction({'UpArrow','DownArrow','space'});
+        [isEndSxn, ~, rxn_key, ~] = reaction({'UpArrow','DownArrow','LeftArrow','RightArrow','space'});
         if isEndSxn, break; end
         switch rxn_key
             case 'UpArrow'
-                th = th + step_th;
+                th = th + lil_step_th;
             case 'DownArrow'
-                th = th - step_th;
+                th = th - lil_step_th;
+            case 'LeftArrow'
+                th = th - big_step_th;
+            case 'RightArrow'
+                th = th + big_step_th;
             case 'space'
+                rxn = th_to2AFC(th, trj_tipN, ill_tipN);
                 isNxt = true;
         end
                 
@@ -109,7 +115,36 @@ while whTrl <= qTrl && ~isEndSxn
     end
     if isEndSxn, break; end
     PsychHID('KbQueueStop');
+    
+    qst = easy_quest('Update',qst,int_spd,rxn,'Condition',trl_sq(whTrl,:));
+    
+    whTrl = whTrl + 1;
 end
+
+init_trl = whTrl+1; % if quit before completing the next trial, next session will start from the init_trl
+end
+%%
+function rxn = th_to2AFC(th, trj_tip, ill_tip)
+
+th = mod(mod(th,360),180);
+doe = 10; % degree of error
+
+if trj_tip == 1
+    if ill_tip == 1
+        rxn = th > 0 && th < (45 + doe);
+    else
+        rxn = th > (45 - doe) && th < 90;       
+    end
+else
+    if ill_tip == 1
+        rxn = th > 90 && th < (135 + doe);
+    else
+        rxn = th > (135 - doe) && th < 180;
+    end
+end
+
+rxn = ~rxn;
+
 end
 %%
 function whFrm = get_currFrmNo(currFrm,qFrm,isRev,onsetX)

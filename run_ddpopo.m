@@ -24,7 +24,7 @@ while whBlk <= qBlk && ~isEndSxn
     blkX = imp_blkX(sprintf('Trial_Sequence_No%d.txt',trl_sq_no));
     [qBlk,~] = size(blkX);
     trl_sq = blkX(whBlk,:);    
-    [isEndSxn, isComplete] = run_blk_ddpopo(f, whBlk, trl_sq);
+    [isEndSxn, isComplete] = ddpopo(f, whBlk, trl_sq);
     
     whBlk = whBlk + 1;
 end
