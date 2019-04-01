@@ -19,16 +19,17 @@ else
     trl_sq = setTrialOrder_inDDPOPOQuest(20);
     init_trl = 1;
     qst = easy_quest('Create',1,.1,'StimulusTypes',[8,2,2]);
+    int_spdX = [];
 end
 
 if ~(init_trl > length(trl_sq))
-    [qst, trl_sq, init_trl] = ddpopo_quest(qst, trl_sq, init_trl);
+    [qst, trl_sq, init_trl, int_spdX] = ddpopo_quest(qst, trl_sq, init_trl, int_spdX);
 else
     error('Data collection for this participant seem to have completed.')
 end
 sca;
 
-save(f_nm, 'qst', 'trl_sq', 'init_trl')
+save(f_nm, 'qst', 'trl_sq', 'init_trl', 'int_spdX')
 if init_trl > length(trl_sq)
     disp('Quest session finalised');
     op = easy_quest('Result',qst);

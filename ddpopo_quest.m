@@ -1,4 +1,4 @@
-function [qst, trl_sq, init_trl] = ddpopo_quest(qst, trl_sq, init_trl)
+function [qst, trl_sq, init_trl, int_spdX] = ddpopo_quest(qst, trl_sq, init_trl, int_spdX)
 %% Open Window
 scr_cfg.blendfunction = 'yes';
 scr_cfg.sourcefactor = 'GL_SRC_ALPHA';
@@ -116,6 +116,7 @@ while whTrl <= qTrl && ~isEndSxn
     if isEndSxn, break; end
     PsychHID('KbQueueStop');
     
+    int_spdX(whTrl,:) = [stim_pos, trj_tipN, ill_tipN, int_spd, th, rxn];
     qst = easy_quest('Update',qst,int_spd,rxn,'Condition',trl_sq(whTrl,:));
     
     whTrl = whTrl + 1;
