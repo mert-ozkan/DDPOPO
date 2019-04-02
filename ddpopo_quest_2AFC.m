@@ -1,4 +1,4 @@
-function [qst, trl_sq, init_trl] = ddpopo_quest_2AFC(qst, trl_sq, init_trl)
+function [qst, trl_sq, init_trl, int_spdX] = ddpopo_quest_2AFC(qst, trl_sq, init_trl, int_spdX)
 %% Open Window
 scr_cfg.blendfunction = 'yes';
 scr_cfg.sourcefactor = 'GL_SRC_ALPHA';
@@ -95,7 +95,7 @@ while whTrl <= qTrl && ~isEndSxn
         draw_DDpatches(scr,coord,whFrm,pink,int_thN,trj_tipN);
         Screen('Flip',scr.windowptr);
         
-        [isEndSxn, ~, rxn_key, ~] = reaction({'f','j'});
+        [isEndSxn, isNxt, rxn_key, ~] = reaction({'f','j'});
         if isEndSxn, break; end
         rxn = (rxn_key=='f' && trj_tipN==1) || (rxn_key=='j' && trj_tipN==2);
                 
@@ -104,6 +104,7 @@ while whTrl <= qTrl && ~isEndSxn
     if isEndSxn, break; end
     PsychHID('KbQueueStop');
     
+    int_spdX(whTrl,:) = [stim_pos, trj_tipN, ill_tipN, int_spd, rxn];
     qst = easy_quest('Update',qst,int_spd,rxn,'Condition',trl_sq(whTrl,:));
     
     whTrl = whTrl + 1;
