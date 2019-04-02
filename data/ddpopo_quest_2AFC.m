@@ -1,4 +1,4 @@
-function [qst, trl_sq, init_trl, int_spdX] = ddpopo_quest(qst, trl_sq, init_trl, int_spdX)
+function [qst, trl_sq, init_trl] = ddpopo_quest_2AFC(qst, trl_sq, init_trl)
 %% Open Window
 scr_cfg.blendfunction = 'yes';
 scr_cfg.sourcefactor = 'GL_SRC_ALPHA';
@@ -85,67 +85,31 @@ while whTrl <= qTrl && ~isEndSxn
     currFrm = ceil(qFrm/2);
     isNxt = false;
     PsychHID('KbQueueStart'); PsychHID('KbQueueFlush');
-    th = randi(180)+.5;
-    lil_step_th = 1;
-    big_step_th = 10;
+    
+    j_slope = (ill_tipN==1)*5 + (ill_tipN==2)*85;
     while ~isNxt        
         whFrm = get_currFrmNo(currFrm,qFrm,true);
-        draw_line(scr,'Slope',th);
+        draw_line(scr, 'Slope',j_slope, 'Color', [255, 255, 0, 255]);
+        draw_line(scr, 'Slope',180-j_slope, 'Color', [0, 255, 255, 255]);
         draw_dots(scr.windowptr,scr.xcenter,scr.ycenter);
         draw_DDpatches(scr,coord,whFrm,pink,int_thN,trj_tipN);
         Screen('Flip',scr.windowptr);
         
-        [isEndSxn, ~, rxn_key, ~] = reaction({'UpArrow','DownArrow','LeftArrow','RightArrow','space'});
+        [isEndSxn, ~, rxn_key, ~] = reaction({'f','j'});
         if isEndSxn, break; end
-        switch rxn_key
-            case 'UpArrow'
-                th = th + lil_step_th;
-            case 'DownArrow'
-                th = th - lil_step_th;
-            case 'LeftArrow'
-                th = th - big_step_th;
-            case 'RightArrow'
-                th = th + big_step_th;
-            case 'space'
-                rxn = th_to2AFC(th, trj_tipN, ill_tipN);
-                isNxt = true;
-        end
+        rxn = (rxn_key=='f' && trj_tipN==1) || (rxn_key=='j' && trj_tipN==2);
                 
         currFrm = currFrm + 1;
     end
     if isEndSxn, break; end
     PsychHID('KbQueueStop');
     
-    int_spdX(whTrl,:) = [stim_pos, trj_tipN, ill_tipN, int_spd, mod(mod(th,360),180), rxn];
     qst = easy_quest('Update',qst,int_spd,rxn,'Condition',trl_sq(whTrl,:));
     
     whTrl = whTrl + 1;
 end
 
 init_trl = whTrl + isNxt; % if quit before completing the next trial, next session will start from the init_trl
-end
-%%
-function rxn = th_to2AFC(th, trj_tip, ill_tip)
-
-th = mod(mod(th,360),180);
-doe = 10; % degree of error
-
-if trj_tip == 1
-    if ill_tip == 1
-        rxn = th > 0 && th < (45 + doe);
-    else
-        rxn = th > (45 - doe) && th < 90;       
-    end
-else
-    if ill_tip == 1
-        rxn = th > 90 && th < (135 + doe);
-    else
-        rxn = th > (135 - doe) && th < 180;
-    end
-end
-
-rxn = ~rxn;
-
 end
 %%
 function whFrm = get_currFrmNo(currFrm,qFrm,isRev,onsetX)
