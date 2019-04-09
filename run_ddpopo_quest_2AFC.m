@@ -34,6 +34,7 @@ if init_trl > length(trl_sq)
     disp('Quest session finalised');
     op = easy_quest('Result',qst);
     save(f_nm, 'op', '-append');
+    plot_quest_results(op,int_spdX)
 end
 end
 %%
