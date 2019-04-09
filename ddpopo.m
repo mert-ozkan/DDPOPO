@@ -1,4 +1,4 @@
-function [isEndSxn, isComplete] = ddpopo(f, whBlk, trl_sq)
+function [isEndSxn, isComplete] = ddpopo(f, whBlk, trl_sq, int_spdX)
 %% Priming of Pop-Out in Double-Drift
 %%
 % rec = 1;
@@ -40,7 +40,6 @@ qFrm = round(trl_dur * scr.framerate);
 pink_cfg.mode = 'pinknoise';
 pink_cfg.pixelsperdegree = hor_ppd;
 pink_cfg.framerate = scr.framerate;
-pink_cfg.internalspeed = int_spd;
 pink_cfg.trialduration = trl_dur; %(seconds)
 pink_cfg.envelopesize = env_sz; %(degrees)
 pink_cfg.backgroundcolour = 127;
@@ -49,10 +48,7 @@ pink_cfg.numberofoctaves = 3;
 pink_cfg.randomnoise = 0;% = 1 only for the control stimulus without illusion
 pink_cfg.reversal = 0; %(if 1, the stimulus ends at the initial location)
 
-pink = createdoubledriftstimulus(pink_cfg);
-for currFrm = 1:qFrm
-    pink.tex(currFrm) = Screen('MakeTexture', scr.windowptr,squeeze(pink.mat(:,:,currFrm)));
-end
+
 %% Stimulus trajectories
 rect_cfg.numberoftrajectories = qPatch;
 rect_cfg.trialduration = trl_dur;
@@ -87,13 +83,23 @@ while ~isEndSxn && whTrl <= qTrl
     
     repCryp = compare_digits(cryp,prevCryp);
     
-    [ext_thX, int_thX, ~] = dcryp_patch_properties(cryp,qPatch,int_th);
+    [ext_thX, int_thX, ill_tipX] = dcryp_patch_properties(cryp,qPatch,int_th);
     
     dot_clr = repmat([1;2],qPatch/2,1);
     dot_clr = dot_clr(randperm(qPatch));
     
     onsetX = asynchronous_onsets(scr.framerate,.5,qPatch);
 %     onsetX = asynchronous_onsets(scr.framerate,0,qPatch);
+
+    %% Create stimulus
+    for whPatch = 1:qPatch
+        pink_cfg.internalspeed = int_spdX(tar_pos, ext_thX(whPatch), ill_tipX(whPatch));
+        pink = createdoubledriftstimulus(pink_cfg);
+        for currFrm = 1:qFrm
+            pink_tex(whPatch, currFrm) = Screen('MakeTexture', scr.windowptr,squeeze(pink.mat(:,:,currFrm)));
+        end
+    end
+    pink.tex = pink_tex;
     %% Initial screen
     if whTrl == 1
         isEndSxn = initial_screen(scr,whBlk,qTrl);

@@ -3,5 +3,6 @@ data/test
 trash.m
 *.m~
 .DS_Store
-data/test
 data/test.mat
+data/.DS_Store
+data/incomplete/

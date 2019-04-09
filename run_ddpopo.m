@@ -5,6 +5,7 @@ sca;
 addpath('/Users/mertozkan/Documents/MATLAB/PTB');
 addpath(genpath('/Users/mertozkan/Documents/MATLAB/DD/DDPOPO'));
 dr_dat = '/Users/mertozkan/Documents/MATLAB/DD/DDPOPO/data';
+dr_spd = '/Users/mertozkan/Documents/MATLAB/DD/DDPOPO/data/internal_speeds';
 dr_incomplete = '/Users/mertozkan/Documents/MATLAB/DD/DDPOPO/data/incomplete';
 %%
 whBlk = 1;
@@ -19,12 +20,15 @@ while whBlk <= qBlk && ~isEndSxn
     else
         [f_nm, init, trl_sq_no, whBlk] = create_filename(dr_dat, 'SessionInfo', init, trl_sq_no, whBlk);
     end
+    
+    int_spdX = return_speeds(init,dr_spd);
+    
     f.directory = dr_dat;
     f = write_inFile(f,'open',f_nm);
     blkX = imp_blkX(sprintf('Trial_Sequence_No%d.txt',trl_sq_no));
     [qBlk,~] = size(blkX);
     trl_sq = blkX(whBlk,:);    
-    [isEndSxn, isComplete] = ddpopo(f, whBlk, trl_sq);
+    [isEndSxn, isComplete] = ddpopo(f, whBlk, trl_sq, int_spdX);
     
     whBlk = whBlk + 1;
 end
@@ -32,6 +36,27 @@ sca;
 
 if ~isComplete && length(varargin) ~= 1
     movefile(f.name,dr_incomplete);
+end
+end
+%%
+function int_spdX = return_speeds(init,dr)
+if strcmp(init,'test') || strcmp(init,'try')
+    int_spdX = ones(8,2,2)*4;
+else
+    f = sprintf('%s/DDPOPO_Quest_%s.mat',dr,init);
+    if isfile(f)
+        load(f,'op')
+        for whPos = 1:8
+            for whTrj = 1:2
+                for whIll = 1:2
+                    field_nm = sprintf('Stim%d%d%d',whPos,whTrj,whIll);
+                    int_spdX(whPos,whTrj,whIll) = op.(field_nm).avg;
+                end
+            end
+        end
+    else
+        error('There is no file under this name.');
+    end
 end
 end
 %%

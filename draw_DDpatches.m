@@ -49,7 +49,7 @@ if length(info) == 4
             coord = squeeze(coordX(whPatch,ext_th,whFrm(whPatch),1:2));
             rect = CenterRectOnPointd(pink.rect,coord(1),coord(2));
 
-            Screen('DrawTexture', scr.windowptr, pink.tex(whFrm(whPatch)), [], rect,int_th);
+            Screen('DrawTexture', scr.windowptr, pink.tex(whPatch, whFrm(whPatch)), [], rect,int_th);
             if isDrawDot
                 draw_dots(scr.windowptr,coord(1),coord(2),'Size',dot_sz,'Color',dot_gunX(dot_clr(whPatch),:));
             end
