@@ -50,6 +50,8 @@ if length(info) == 4
             rect = CenterRectOnPointd(pink.rect,coord(1),coord(2));
 
             Screen('DrawTexture', scr.windowptr, pink.tex(whPatch, whFrm(whPatch)), [], rect,int_th);
+            % vss demo
+%             Screen('FrameOval', scr.windowptr, [255 255 255 255], rect);             
             if isDrawDot
                 draw_dots(scr.windowptr,coord(1),coord(2),'Size',dot_sz,'Color',dot_gunX(dot_clr(whPatch),:));
             end

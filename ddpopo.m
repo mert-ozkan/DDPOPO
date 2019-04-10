@@ -1,12 +1,5 @@
 function [isEndSxn, isComplete] = ddpopo(f, whBlk, trl_sq, int_spdX)
 %% Priming of Pop-Out in Double-Drift
-%%
-% rec = 1;
-% mov.name = 'PopOut_Synch';
-% mov.framerate = 60;
-% mov.dir = '/Users/mertozkan/Documents/DD/Stimuli';
-% mov = record_display(rec,mov,'create');
-
 %% Open Window
 scr_cfg.blendfunction = 'yes';
 scr_cfg.sourcefactor = 'GL_SRC_ALPHA';
@@ -24,7 +17,6 @@ ver_ppd = scr.pixperdeg_v;
 
 qPatch = 8;
 env_sz = 1;
-int_spd = 4;
 dist_deFix = 6;
 trl_dur = .31;
 
@@ -89,8 +81,6 @@ while ~isEndSxn && whTrl <= qTrl
     dot_clr = dot_clr(randperm(qPatch));
     
     onsetX = asynchronous_onsets(scr.framerate,.5,qPatch);
-%     onsetX = asynchronous_onsets(scr.framerate,0,qPatch);
-
     %% Create stimulus
     for whPatch = 1:qPatch
         pink_cfg.internalspeed = int_spdX(tar_pos, ext_thX(whPatch), ill_tipX(whPatch));
@@ -117,10 +107,7 @@ while ~isEndSxn && whTrl <= qTrl
         draw_dots(scr.windowptr,scr.xcenter,scr.ycenter);
         draw_DDpatches(scr,coordX,whFrm,pink,int_thX,ext_thX,'SuperimposeDots','AssignColor',dot_clr);
         Screen('Flip',scr.windowptr);
-        
-%         rec = currFrm <= 9*qFrm && currFrm >= 3*qFrm+1;
-%         mov = record_display(rec,mov,'record',scr.windowptr);
-        
+
         [isEndSxn, isRxn, rxn_key, rxn_t] = reaction({'RightArrow','LeftArrow'});
         if isEndSxn, break; end
         
@@ -129,7 +116,6 @@ while ~isEndSxn && whTrl <= qTrl
     end
     if isEndSxn, break; end
     PsychHID('KbQueueStop');
-%     mov = record_display(1,mov,'finalize');
     
     if strcmp(rxn_key,'RightArrow')
         rxn_key = 1;
