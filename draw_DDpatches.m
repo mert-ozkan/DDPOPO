@@ -1,6 +1,7 @@
 function draw_DDpatches(scr,coordX,whFrm,pink,int_thX,ext_thX,varargin)
 
 isDrawDot = false;
+isCirc = false;
 info = size(coordX);
 
 if ~isempty(varargin)
@@ -21,7 +22,11 @@ if ~isempty(varargin)
                     dot_sz = scr.pixperdeg_h*varargin{idx+1};
                 case 'AssignColor'
                     dot_clr = varargin{idx+1};
-                    
+                case 'Circle'
+                    isCirc = true;
+                    col_circ = ones(1,4)*255; 
+                case 'CircleColor'
+                    col_circ = varargin{idx+1};
             end
         end
     end
@@ -48,10 +53,11 @@ if length(info) == 4
 
             coord = squeeze(coordX(whPatch,ext_th,whFrm(whPatch),1:2));
             rect = CenterRectOnPointd(pink.rect,coord(1),coord(2));
-
             Screen('DrawTexture', scr.windowptr, pink.tex(whPatch, whFrm(whPatch)), [], rect,int_th);
             % vss demo
-%             Screen('FrameOval', scr.windowptr, [255 255 255 255], rect);             
+            if isCirc
+                Screen('FrameOval', scr.windowptr, col_circ, rect,3);             
+            end
             if isDrawDot
                 draw_dots(scr.windowptr,coord(1),coord(2),'Size',dot_sz,'Color',dot_gunX(dot_clr(whPatch),:));
             end

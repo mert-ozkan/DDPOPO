@@ -8,6 +8,7 @@ dr_dat = '/Users/mertozkan/Documents/MATLAB/DD/DDPOPO/data';
 dr_spd = '/Users/mertozkan/Documents/MATLAB/DD/DDPOPO/data/internal_speeds';
 dr_incomplete = '/Users/mertozkan/Documents/MATLAB/DD/DDPOPO/data/incomplete';
 %%
+isOpenW = true;
 whBlk = 1;
 qBlk = 1;
 isEndSxn = false;   
@@ -27,10 +28,15 @@ while whBlk <= qBlk && ~isEndSxn
     f = write_inFile(f,'open',f_nm);
     blkX = imp_blkX(sprintf('Trial_Sequence_No%d.txt',trl_sq_no));
     [qBlk,~] = size(blkX);
-    trl_sq = blkX(whBlk,:);    
-    [isEndSxn, isComplete] = ddpopo(f, whBlk, trl_sq, int_spdX);
+    trl_sq = blkX(whBlk,:);
+    
+    if isOpenW
+        scr = struct;
+    end
+    [isEndSxn, isComplete, scr] = ddpopo(scr, f, whBlk, trl_sq, int_spdX);
     
     whBlk = whBlk + 1;
+    isOpenW = false;
 end
 sca;
 

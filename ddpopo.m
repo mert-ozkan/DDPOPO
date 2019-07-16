@@ -1,4 +1,4 @@
-function [isEndSxn, isComplete] = ddpopo(f, whBlk, trl_sq, int_spdX)
+function [isEndSxn, isComplete, scr] = ddpopo(scr, f, whBlk, trl_sq, int_spdX)
 %% Priming of Pop-Out in Double-Drift
 %% Open Window
 scr_cfg.blendfunction = 'yes';
@@ -10,7 +10,9 @@ scr_cfg.debugrect = 0;
 scr_cfg.viewingdistance = 57;
 scr_cfg.backgroundcolor = [127 127 127 255];
 
-[scr]=openexperimentwindow(scr_cfg);
+if isempty(fieldnames(scr))
+    [scr]=openexperimentwindow(scr_cfg);
+end
 %% Parameters
 hor_ppd = scr.pixperdeg_h;
 ver_ppd = scr.pixperdeg_v;
@@ -60,7 +62,15 @@ write_inFile(f,',','cryp');
 write_inFile(f,',','repCryp');
 write_inFile(f,',','tar_clr');
 write_inFile(f,',','rxn_key');
-write_inFile(f,'line','rxn_t');
+write_inFile(f,',','rxn_t');
+write_inFile(f,',','prop1');
+write_inFile(f,',','prop2');
+write_inFile(f,',','prop3');
+write_inFile(f,',','prop4');
+write_inFile(f,',','prop5');
+write_inFile(f,',','prop6');
+write_inFile(f,',','prop7');
+write_inFile(f,'line','prop8');
 
 %% Display
 isEndSxn = false;
@@ -70,12 +80,13 @@ prevCryp = 99999999;
 PsychHID('KbQueueCreate');
 while ~isEndSxn && whTrl <= qTrl
     %% Trial parameters
-    cryp = trl_sq(whBlk,whTrl);
+    cryp = trl_sq(whTrl);
     tar_pos = return_digit(cryp,'last');
     
     repCryp = compare_digits(cryp,prevCryp);
     
     [ext_thX, int_thX, ill_tipX] = dcryp_patch_properties(cryp,qPatch,int_th);
+    crypX = ill_tipX*10 + ext_thX;
     
     dot_clr = repmat([1;2],qPatch/2,1);
     dot_clr = dot_clr(randperm(qPatch));
@@ -103,7 +114,6 @@ while ~isEndSxn && whTrl <= qTrl
     PsychHID('KbQueueStart'); PsychHID('KbQueueFlush');
     while ~isRxn        
         whFrm = get_currFrmNo(currFrm,qFrm,true,onsetX);
-        
         draw_dots(scr.windowptr,scr.xcenter,scr.ycenter);
         draw_DDpatches(scr,coordX,whFrm,pink,int_thX,ext_thX,'SuperimposeDots','AssignColor',dot_clr);
         Screen('Flip',scr.windowptr);
@@ -128,7 +138,15 @@ while ~isEndSxn && whTrl <= qTrl
     write_inFile(f,',',repCryp);
     write_inFile(f,',',dot_clr(tar_pos));
     write_inFile(f,',',rxn_key);
-    write_inFile(f,'line',rxn_t);
+    write_inFile(f,',',rxn_t);
+    write_inFile(f,',',crypX(1));
+    write_inFile(f,',',crypX(2));
+    write_inFile(f,',',crypX(3));
+    write_inFile(f,',',crypX(4));
+    write_inFile(f,',',crypX(5));
+    write_inFile(f,',',crypX(6));
+    write_inFile(f,',',crypX(7));
+    write_inFile(f,'line',crypX(8));
     
     prevCryp = cryp;
     whTrl = whTrl + 1;
@@ -137,6 +155,7 @@ isComplete = true;
 if whTrl-1 ~= qTrl
     isComplete = false;
 end
+write_inFile(f,'close');
 end
 %%
 function isEndSxn = initial_screen(scr,whBlk,qTrl)
