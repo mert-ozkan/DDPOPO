@@ -111,14 +111,20 @@ while ~isEndSxn && whTrl <= qTrl
     %% Start trial
     currFrm = ceil(qFrm/2);
     isRxn = false;
+    isFrm1 = true;
     PsychHID('KbQueueStart'); PsychHID('KbQueueFlush');
     while ~isRxn        
         whFrm = get_currFrmNo(currFrm,qFrm,true,onsetX);
         draw_dots(scr.windowptr,scr.xcenter,scr.ycenter);
         draw_DDpatches(scr,coordX,whFrm,pink,int_thX,ext_thX,'SuperimposeDots','AssignColor',dot_clr);
-        Screen('Flip',scr.windowptr);
+        flip_t = Screen('Flip',scr.windowptr);
+        
+        if isFrm1
+            onset_t = flip_t;
+        end
+        isFrm1 = false;
 
-        [isEndSxn, isRxn, rxn_key, rxn_t] = reaction({'RightArrow','LeftArrow'});
+        [isEndSxn, isRxn, rxn_key, rxn_t] = reaction({'r','g'});
         if isEndSxn, break; end
         
         currFrm = currFrm + 1;
@@ -127,11 +133,13 @@ while ~isEndSxn && whTrl <= qTrl
     if isEndSxn, break; end
     PsychHID('KbQueueStop');
     
-    if strcmp(rxn_key,'RightArrow')
+    if strcmpi(rxn_key,'r')
         rxn_key = 1;
     else
         rxn_key = 2;
     end
+    
+    rxn_t = rxn_t - onset_t;
     
     write_inFile(f,',',whTrl);
     write_inFile(f,',',cryp);
