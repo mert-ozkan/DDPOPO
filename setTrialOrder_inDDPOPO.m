@@ -14,6 +14,7 @@ test_trial_randomization(rep_cond)
 
 trl_sq = generate_randomly_ordered_trials(rep_cond,qRep_perDisp);
 blkX = divide_trials_inblocks(trl_sq,rng_qTrl_inBlk);
+blkX = insert_random_sequences(blkX, trl_sq, 7, 29);
 blkX = assign_position(blkX);
 q_rep = number_of_repetitions(blkX);
 end
@@ -278,5 +279,27 @@ if sum(repX~=3)
     error('Test failed.')
 else
     disp('Test passed.');
+end
+end
+%%
+function new_blkX = insert_random_sequences(blkX, trl_sq, q_sq, q_el_inSq)
+[q_blk, q_trl_inBlk] = size(blkX);
+for whBlk = 1:q_blk
+    blkN = blkX(whBlk,:);
+    
+    [q_trl,~] = randfixedsum(q_sq,1,q_el_inSq-q_sq,1,q_trl_inBlk);
+    q_trl = round(q_trl);
+    while sum(q_trl) ~= q_el_inSq-q_sq
+        [q_trl,~] = randfixedsum(q_sq,1,q_el_inSq-q_sq,1,q_trl_inBlk);
+        q_trl = round(q_trl);
+    end
+    
+    ord_trl = sort(ceil(rand(1,q_sq)*(q_trl_inBlk-2)))+1;
+    for idx = q_sq:-1:1 %descending order
+        rnd_sqN = [trl_sq(ceil(rand(1,q_trl(idx))*length(trl_sq))), blkN(ord_trl(idx)-1)];
+        blkN = insert(blkN, rnd_sqN, ord_trl(idx));
+    end
+    
+    new_blkX(whBlk,:) = blkN;
 end
 end
