@@ -7,14 +7,14 @@ dispX = [...
 dispX = combvec(0:4,dispX);
 dispX = dispX(2,:)*10 + dispX(1,:);
 
-qRep_perDisp = 3;
+qRep_perDisp = 2;
 rng_qTrl_inBlk = [30 35];
 rep_cond = combvec(dispX,dispX);
 test_trial_randomization(rep_cond)
 
 trl_sq = generate_randomly_ordered_trials(rep_cond,qRep_perDisp);
 blkX = divide_trials_inblocks(trl_sq,rng_qTrl_inBlk);
-blkX = insert_random_sequences(blkX, trl_sq, 7, 29);
+blkX = insert_random_sequences(blkX, trl_sq, 7, 27);
 blkX = assign_position(blkX);
 q_rep = number_of_repetitions(blkX);
 end
